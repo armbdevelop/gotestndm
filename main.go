@@ -101,11 +101,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		mu.Unlock()
-
 		timeoutStr := r.URL.Query().Get("timeout")
 
 		if timeoutStr == "" {
+			mu.Unlock()
 			http.Error(w, "", http.StatusNotFound)
 			return
 		}
@@ -113,13 +112,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		timeout, err := strconv.Atoi(timeoutStr)
 
 		if err != nil || timeout < 0 {
+			mu.Unlock()
 			http.Error(w, "", http.StatusBadRequest)
 			return
 		}
 
 		ch := make(chan string, 1)
 
-		mu.Lock()
 		q.waiters = append(q.waiters, ch)
 		mu.Unlock()
 
